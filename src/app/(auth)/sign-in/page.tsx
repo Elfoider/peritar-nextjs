@@ -16,11 +16,12 @@ import MuiCard from "@mui/material/Card";
 import { styled } from "@mui/material/styles";
 import ForgotPassword from "./components/ForgotPassword";
 import AppTheme from "../../shared-theme/AppTheme";
-import ColorModeSelect from "../../shared-theme/ColorModeSelect";
-import { GoogleIcon, FacebookIcon } from "./components/CustomIcons";
 import SitemarkIcon from "../../shared-components/SitemarkIcon";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { auth } from "@utils/firebase";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -71,6 +72,20 @@ export default function SignIn() {
   const [passwordError, setPasswordError] = React.useState(false);
   const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [open, setOpen] = React.useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setTimeout(() => {
+        if (user) {
+          router.replace("/dashboard/superuser");
+        } else {
+          setIsLoading(false);
+        }
+      }, 1500);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -80,17 +95,21 @@ export default function SignIn() {
     setOpen(false);
   };
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (emailError || passwordError) {
       return;
     }
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get("email"),
-      password: data.get("password"),
+    await signInWithEmailAndPassword(
+      auth,
+      data.get("email") as string,
+      data.get("password") as string
+    ).then((userCredential) => {
+      const user = userCredential.user;
+      console.log("Signed in user:", user);
+      router.replace("/dashboard/superuser");
     });
-    router.replace("/dashboard/superuser");
   };
 
   const validateInputs = () => {
@@ -117,12 +136,6 @@ export default function SignIn() {
       setPasswordErrorMessage("");
     }
     return isValid;
-    // if (isValid) {
-    //   // Simulate successful login
-    //   router.push("/dashboard");
-    // } else {
-    //   alert("Credenciales inválidas. Por favor, inténtalo de nuevo.");
-    // }
   };
 
   return (
@@ -136,78 +149,99 @@ export default function SignIn() {
             component="h1"
             variant="h4"
             sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
-          ></Typography>
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              width: "100%",
-              gap: 2,
-            }}
           >
-            <FormControl>
-              <FormLabel htmlFor="email">Correo</FormLabel>
-              <TextField
-                error={emailError}
-                helperText={emailErrorMessage}
-                id="email"
-                type="email"
-                name="email"
-                placeholder="correo@ejemplo.com"
-                autoComplete="email"
-                autoFocus
-                required
-                fullWidth
-                variant="outlined"
-                color={emailError ? "error" : "primary"}
-              />
-            </FormControl>
-            <FormControl>
-              <FormLabel htmlFor="password">Contraseña</FormLabel>
-              <TextField
-                error={passwordError}
-                helperText={passwordErrorMessage}
-                name="password"
-                placeholder="••••••"
-                type="password"
-                id="password"
-                autoComplete="current-password"
-                autoFocus
-                required
-                fullWidth
-                variant="outlined"
-                color={passwordError ? "error" : "primary"}
-              />
-            </FormControl>
-            <FormControlLabel
-              control={<Checkbox value="remember" color="primary" />}
-              label="Recuerdame"
-            />
-            <ForgotPassword open={open} handleClose={handleClose} />
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              onClick={validateInputs}
+            Iniciar sesión
+          </Typography>
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                width: "100%",
+                gap: 2,
+                alignItems: "center",
+                justifyContent: "center",
+                mt: 4,
+              }}
             >
-              Iniciar sesión
-            </Button>
-            <LinkLabel
-              component="button"
-              type="button"
-              onClick={handleClickOpen}
-              variant="body2"
-              sx={{ alignSelf: "center" }}
-            >
-              ¿Olvidaste la clave?
-            </LinkLabel>
-          </Box>
-          <Divider>o</Divider>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            {/* <Button
+              <CircularProgress size="8rem" />
+              <Typography variant="h6" sx={{ textAlign: "center" }}>
+                Verificando si hay una sesión activa...
+              </Typography>
+            </Box>
+          ) : (
+            <>
+              <Box
+                component="form"
+                onSubmit={handleSubmit}
+                noValidate
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  width: "100%",
+                  gap: 2,
+                }}
+              >
+                <FormControl>
+                  <FormLabel htmlFor="email">Correo</FormLabel>
+                  <TextField
+                    error={emailError}
+                    helperText={emailErrorMessage}
+                    id="email"
+                    type="email"
+                    name="email"
+                    placeholder="correo@ejemplo.com"
+                    autoComplete="email"
+                    autoFocus
+                    required
+                    fullWidth
+                    variant="outlined"
+                    color={emailError ? "error" : "primary"}
+                  />
+                </FormControl>
+                <FormControl>
+                  <FormLabel htmlFor="password">Contraseña</FormLabel>
+                  <TextField
+                    error={passwordError}
+                    helperText={passwordErrorMessage}
+                    name="password"
+                    placeholder="••••••"
+                    type="password"
+                    id="password"
+                    autoComplete="current-password"
+                    autoFocus
+                    required
+                    fullWidth
+                    variant="outlined"
+                    color={passwordError ? "error" : "primary"}
+                  />
+                </FormControl>
+                <FormControlLabel
+                  control={<Checkbox value="remember" color="primary" />}
+                  label="Recuerdame"
+                />
+                <ForgotPassword open={open} handleClose={handleClose} />
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  onClick={validateInputs}
+                >
+                  Iniciar sesión
+                </Button>
+                <LinkLabel
+                  component="button"
+                  type="button"
+                  onClick={handleClickOpen}
+                  variant="body2"
+                  sx={{ alignSelf: "center" }}
+                >
+                  ¿Olvidaste la clave?
+                </LinkLabel>
+              </Box>
+              <Divider>o</Divider>
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {/* <Button
               fullWidth
               variant="outlined"
               onClick={() => alert("Sign in with Google")}
@@ -215,17 +249,19 @@ export default function SignIn() {
             >
               Sign in with Google
             </Button> */}
-            <Typography sx={{ textAlign: "center" }}>
-              ¿No tienes cuenta?{" "}
-              <LinkLabel
-                href="/sign-up"
-                variant="body2"
-                sx={{ alignSelf: "center" }}
-              >
-                Registrate
-              </LinkLabel>
-            </Typography>
-          </Box>
+                <Typography sx={{ textAlign: "center" }}>
+                  ¿No tienes cuenta?{" "}
+                  <LinkLabel
+                    href="/sign-up"
+                    variant="body2"
+                    sx={{ alignSelf: "center" }}
+                  >
+                    Registrate
+                  </LinkLabel>
+                </Typography>
+              </Box>
+            </>
+          )}
         </Card>
       </SignInContainer>
     </AppTheme>
