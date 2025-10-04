@@ -107,9 +107,9 @@ export default function AppAppBar() {
             >
               Autenticarse
             </Button>
-            <Button LinkComponent={Link} href="/sign-up" color="primary" variant="contained" size="small">
+            {/* <Button LinkComponent={Link} href="/sign-up" color="primary" variant="contained" size="small">
               Registrarse
-            </Button>
+            </Button> */}
             <ColorModeIconDropdown />
           </Box>
           <Box sx={{ display: { xs: "flex", md: "none" }, gap: 1 }}>

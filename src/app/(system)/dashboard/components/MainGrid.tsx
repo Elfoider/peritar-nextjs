@@ -75,16 +75,34 @@ export default function MainGrid() {
             <StatCard {...card} />
           </Grid>
         ))}
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 8 }}>
           <SessionsChart />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 4 }}>
           <ChartUserByCountry />
         </Grid>
       </Grid>
       <Typography component="h2" variant="h6" sx={{ mb: 2 }}>
-        Details
+        Acceso Rapido
       </Typography>
+      <Grid container spacing={2} columns={12} sx={{ mb: (theme) => theme.spacing(2) }}>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <HighlightedCard
+            title="Gestion de Casos"
+            description="Accede y administra todos los casos activos y cerrados."
+            buttonText="Ir a Casos"
+            buttonLink="/system/cases"
+          />
+        </Grid>
+        <Grid size={{ xs: 12, md: 4 }}>
+          <HighlightedCard
+            title="Usuarios"
+            description="Gestiona los usuarios registrados en la plataforma."
+            buttonText="Ir a Usuarios"
+            buttonLink="/system/users"
+          />
+        </Grid>
+      </Grid>
       <Grid container spacing={2} columns={12}>
         <Grid size={{ xs: 12, lg: 9 }}>
           <CustomizedDataGrid />

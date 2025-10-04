@@ -216,10 +216,10 @@ export default function SignIn() {
                     color={passwordError ? "error" : "primary"}
                   />
                 </FormControl>
-                <FormControlLabel
+                {/* <FormControlLabel
                   control={<Checkbox value="remember" color="primary" />}
                   label="Recuerdame"
-                />
+                /> */}
                 <ForgotPassword open={open} handleClose={handleClose} />
                 <Button
                   type="submit"
@@ -239,16 +239,16 @@ export default function SignIn() {
                   ¿Olvidaste la clave?
                 </LinkLabel>
               </Box>
-              <Divider>o</Divider>
+              {/* <Divider>o</Divider>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                {/* <Button
+                <Button
               fullWidth
               variant="outlined"
               onClick={() => alert("Sign in with Google")}
               startIcon={<GoogleIcon />}
             >
               Sign in with Google
-            </Button> */}
+            </Button>
                 <Typography sx={{ textAlign: "center" }}>
                   ¿No tienes cuenta?{" "}
                   <LinkLabel
@@ -259,7 +259,7 @@ export default function SignIn() {
                     Registrate
                   </LinkLabel>
                 </Typography>
-              </Box>
+              </Box> */}
             </>
           )}
         </Card>
