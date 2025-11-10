@@ -1,0 +1,554 @@
+{
+  "entities": {
+    "Siniestro": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Siniestro",
+      "type": "object",
+      "description": "Representa un siniestro o caso dentro de la aplicación, conectando a todos los roles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID único del siniestro."
+        },
+        "numeroSiniestro": {
+          "type": "number",
+          "description": "Número de caso secuencial y legible para el usuario."
+        },
+        "clienteId": {
+          "type": "string",
+          "description": "ID del cliente asegurado."
+        },
+        "aseguradoraId": {
+          "type": "string",
+          "description": "ID de la compañía aseguradora."
+        },
+        "peritoId": {
+          "type": "string",
+          "description": "ID del perito asignado al caso."
+        },
+        "tallerId": {
+          "type": "string",
+          "description": "ID del taller asignado para la reparación."
+        },
+        "estado": {
+          "type": "string",
+          "description": "Estado actual del siniestro en el flujo de trabajo.",
+          "enum": [
+            "INICIADO",
+            "PERITAJE_ASIGNADO",
+            "INFORME_PENDIENTE",
+            "INFORME_COMPLETADO",
+            "PRESUPUESTO_PENDIENTE",
+            "PRESUPUESTO_APROBADO",
+            "EN_REPARACION",
+            "REPARACION_FINALIZADA",
+            "CERRADO"
+          ]
+        },
+        "vehiculo": {
+          "type": "object",
+          "description": "Datos del vehículo siniestrado.",
+          "properties": {
+            "marca": { "type": "string" },
+            "modelo": { "type": "string" },
+            "patente": { "type": "string" },
+            "ano": { "type": "number" }
+          },
+          "required": ["marca", "modelo", "patente"]
+        },
+        "clienteInfo": {
+          "type": "object",
+          "description": "Copia de la información del cliente al momento de crear el siniestro.",
+          "properties": {
+            "nombre": { "type": "string" },
+            "apellido": { "type": "string" },
+            "email": { "type": "string", "format": "email" },
+            "telefono": { "type": "string" }
+          },
+          "required": ["nombre", "apellido", "email"]
+        },
+        "informePeritaje": {
+            "type": "object",
+            "description": "Detalles del informe cargado por el perito.",
+            "properties": {
+                "detalles": {"type": "string"},
+                "fotos": {"type": "array", "items": {"type": "string", "format": "uri"}},
+                "fecha": {"type": "string", "format": "date-time"}
+            }
+        },
+        "informeAseguradora": {
+          "type": "object",
+          "description": "Detalles del informe inicial o complementario cargado por la aseguradora.",
+          "properties": {
+            "detalles": { "type": "string" },
+            "documentos": { "type": "array", "items": { "type": "string", "format": "uri" } },
+            "fecha": { "type": "string", "format": "date-time" }
+          }
+        },
+        "presupuesto": {
+            "type": "object",
+            "description": "Detalles del presupuesto cargado por el taller.",
+            "properties": {
+                "monto": {"type": "number"},
+                "detalles": {"type": "string"},
+                "fecha": {"type": "string", "format": "date-time"},
+                "aprobado": {"type": "boolean"}
+            }
+        },
+        "fechaSiniestro": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha y hora cuando ocurrió el siniestro."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "clienteId",
+        "aseguradoraId",
+        "estado",
+        "vehiculo",
+        "clienteInfo",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "MensajeChat": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "MensajeChat",
+      "type": "object",
+      "description": "Representa un único mensaje dentro del chat de un siniestro.",
+      "properties": {
+        "id": { "type": "string" },
+        "siniestroId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderRole": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["siniestroId", "senderId", "senderRole", "text", "timestamp"]
+    },
+    "SuperUsuario": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "SuperUsuario",
+      "type": "object",
+      "description": "Represents the super user of the Peritar Online application with elevated privileges.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the SuperUsuario entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the super user.",
+          "format": "email"
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the super user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the super user."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the super user was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the super user was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "email",
+        "firstName",
+        "lastName",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Aseguradora": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Aseguradora",
+      "type": "object",
+      "description": "Represents an insurance company registered within the Peritar Online application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Aseguradora entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the insurance company."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Contact email address for the insurance company.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "Contact phone number for the insurance company."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the insurance company was registered.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the insurance company was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "contactEmail",
+        "contactPhone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Taller": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Taller",
+      "type": "object",
+      "description": "Represents a repair shop or workshop registered within the Peritar Online application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Taller entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the repair shop/workshop."
+        },
+        "address": {
+          "type": "string",
+          "description": "Address of the repair shop/workshop."
+        },
+        "contactEmail": {
+          "type": "string",
+          "description": "Contact email address for the repair shop/workshop.",
+          "format": "email"
+        },
+        "contactPhone": {
+          "type": "string",
+          "description": "Contact phone number for the repair shop/workshop."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the repair shop/workshop was registered.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the repair shop/workshop was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "address",
+        "contactEmail",
+        "contactPhone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Perito": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Perito",
+      "type": "object",
+      "description": "Represents an expert or surveyor (Perito) within the Peritar Online application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Perito entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the expert/surveyor."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the expert/surveyor."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the expert/surveyor.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the expert/surveyor."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the expert/surveyor was registered.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the expert/surveyor was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Cliente": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Cliente",
+      "type": "object",
+      "description": "Represents a customer or client using the Peritar Online application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Cliente entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "First name of the customer/client."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "Last name of the customer/client."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the customer/client.",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string",
+          "description": "Phone number of the customer/client."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the customer/client was registered.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the customer/client was last updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "firstName",
+        "lastName",
+        "email",
+        "phone",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "AuditLog": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "AuditLog",
+        "type": "object",
+        "description": "Represents an audit log entry for user actions within the application.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the audit log entry."
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of when the action occurred."
+          },
+          "userId": {
+            "type": "string",
+            "description": "The ID of the user who performed the action."
+          },
+          "userEmail": {
+            "type": "string",
+            "description": "The email of the user who performed the action."
+          },
+          "userRole": {
+            "type": "string",
+            "description": "The role of the user at the time of the action."
+          },
+          "action": {
+            "type": "string",
+            "description": "A specific key identifying the action performed (e.g., 'login', 'create_siniestro')."
+          },
+          "details": {
+            "type": "object",
+            "description": "An object containing contextual details about the action.",
+            "properties": {
+              "description": { "type": "string" },
+              "targetId": { "type": "string" }
+            }
+          }
+        },
+        "required": ["id", "timestamp", "userId", "userEmail", "userRole", "action"]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/super_usuarios/{superUsuarioId}",
+        "definition": {
+          "entityName": "SuperUsuario",
+          "schema": {
+            "$ref": "#/backend/entities/SuperUsuario"
+          },
+          "description": "Stores super user profiles. Access is restricted to admins.",
+          "params": [
+            {
+              "name": "superUsuarioId",
+              "description": "Unique identifier for the super user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/aseguradoras/{aseguradoraId}",
+        "definition": {
+          "entityName": "Aseguradora",
+          "schema": {
+            "$ref": "#/backend/entities/Aseguradora"
+          },
+          "description": "Stores insurance company profiles.",
+          "params": [
+            {
+              "name": "aseguradoraId",
+              "description": "Unique identifier for the insurance company."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/talleres/{tallerId}",
+        "definition": {
+          "entityName": "Taller",
+          "schema": {
+            "$ref": "#/backend/entities/Taller"
+          },
+          "description": "Stores repair shop/workshop profiles.",
+          "params": [
+            {
+              "name": "tallerId",
+              "description": "Unique identifier for the repair shop/workshop."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/peritos/{peritoId}",
+        "definition": {
+          "entityName": "Perito",
+          "schema": {
+            "$ref": "#/backend/entities/Perito"
+          },
+          "description": "Stores expert/surveyor profiles.",
+          "params": [
+            {
+              "name": "peritoId",
+              "description": "Unique identifier for the expert/surveyor."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/clientes/{clienteId}",
+        "definition": {
+          "entityName": "Cliente",
+          "schema": {
+            "$ref": "#/backend/entities/Cliente"
+          },
+          "description": "Stores customer/client profiles.",
+          "params": [
+            {
+              "name": "clienteId",
+              "description": "Unique identifier for the customer/client."
+            }
+          ]
+        }
+      },
+       {
+        "path": "/siniestros/{siniestroId}",
+        "definition": {
+          "entityName": "Siniestro",
+          "schema": {
+            "$ref": "#/backend/entities/Siniestro"
+          },
+          "description": "Stores all claim/case information.",
+          "params": [
+            {
+              "name": "siniestroId",
+              "description": "Unique identifier for the claim."
+            }
+          ],
+          "subcollections": [
+            {
+              "path": "mensajes/{mensajeId}",
+              "definition": {
+                "entityName": "MensajeChat",
+                "schema": {
+                  "$ref": "#/backend/entities/MensajeChat"
+                },
+                "description": "Stores chat messages related to a specific claim.",
+                "params": [
+                  {
+                    "name": "mensajeId",
+                    "description": "Unique identifier for the chat message."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      {
+          "path": "/audit_logs/{logId}",
+          "definition": {
+              "entityName": "AuditLog",
+              "schema": {
+                  "$ref": "#/backend/entities/AuditLog"
+              },
+              "description": "Stores audit trail records for all significant user actions.",
+              "params": [
+                  {
+                      "name": "logId",
+                      "description": "Unique identifier for the audit log entry."
+                  }
+              ]
+          }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the Peritar Online application, focusing on role-based access and a clear separation of data. It leverages path-based ownership and dedicated collections to ensure data integrity and simplified security rules. The structure prioritizes authorization independence and facilitates secure list operations.\n\n1.  **Super Usuario:** The `super_usuarios` collection stores super user profiles. Access is restricted to Firebase Authentication.\n2.  **Aseguradoras, Talleres, Peritos, Clientes:**  Each of these entities has its own top-level collection. This segregation allows for specific security rules tailored to each role. Authentication will be handled based on user roles.\n3. **Siniestros:** A central collection for all claims, linking all other entities. Access will be governed by IDs stored within each Siniestro document.\n\nThis structure ensures Authorization Independence by avoiding hierarchical authorization dependencies. Each collection can be secured independently, simplifying the rules and improving maintainability. The segregation into separate collections supports secure list operations (QAPs) as rules can be scoped to each collection. The structure is designed to support the creation of an initial Super Usuario and scale efficiently as the application grows."
+  }
+}
+
+    

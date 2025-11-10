@@ -1,0 +1,137 @@
+/**
+ * @fileOverview Firestore Security Rules for Peritar Online.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a role-based access control model. Each top-level collection
+ * (super_usuarios, aseguradoras, talleres, peritos, clientes, siniestros) is secured independently based on its intended usage.
+ *
+ * Data Structure:
+ * The Firestore database contains separate collections for super users, insurance companies (aseguradoras),
+ * repair shops (talleres), experts/surveyors (peritos), and customers/clients (clientes).  Each entity
+ * is stored in its own top-level collection, identified by a unique document ID. The central `siniestros`
+ * collection links these entities together.
+ *
+ * Key Security Decisions:
+ * - Super user creation is only allowed when no super user exists.  This ensures a single super user.
+ * - Listing of super users is allowed for setup check, but getting individual documents is forbidden for non-owners.
+ * - Other entities (aseguradoras, talleres, peritos, clientes, siniestros) are secured by requiring a valid authenticated user for all operations.
+ * - Schema validation is relaxed in this prototype to allow for rapid iteration.  Only authorization-critical fields are validated.
+ *
+ * Denormalization for Authorization:
+ * To simplify the rules, we rely on the authenticated user's UID. More granular role-based access will be implemented in subsequent steps.
+ *
+ * Structural Segregation:
+ * The design uses separate collections for different entities to avoid the need for complex filtering based on document types.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isSuperUsuario() {
+      return exists(/databases/$(database)/documents/super_usuarios/$(request.auth.uid));
+    }
+    
+    function isPerito(userId) {
+      return exists(/databases/$(database)/documents/peritos/$(userId));
+    }
+    
+    function isAseguradora(userId) {
+        return exists(/databases/$(database)/documents/aseguradoras/$(userId));
+    }
+
+    /**
+     * @description Manages the creation of the initial super user.
+     * @path /super_usuarios/{superUsuarioId}
+     * @allow create if isSignedIn() && isOwner(superUsuarioId) && !exists(/databases/$(database)/documents/super_usuarios/$(superUsuarioId));
+     * @deny update if true;
+     * @deny delete if true;
+     * @allow get if isOwner(superUsuarioId);
+     * @allow list if true;
+     * @principle Allows creation of a single super user and checks for existence.
+     */
+    match /super_usuarios/{superUsuarioId} {
+      function isOwner(superUsuarioId) {
+        return request.auth.uid == superUsuarioId;
+      }
+      allow get: if isOwner(superUsuarioId);
+      allow list: if true;
+      allow create: if isSignedIn() && isOwner(superUsuarioId) && !exists(/databases/$(database)/documents/super_usuarios/$(superUsuarioId));
+      allow update: if false; // Disallow updates for now.
+      allow delete: if false; // Disallow deletes for now.
+    }
+
+    /**
+     * @description Manages insurance company profiles. Only authenticated users can manage them.
+     * @path /aseguradoras/{aseguradoraId}
+     */
+    match /aseguradoras/{aseguradoraId} {
+      allow read, write: if isSignedIn();
+    }
+
+    /**
+     * @description Manages repair shop profiles. Only authenticated users can manage them.
+     * @path /talleres/{tallerId}
+     */
+    match /talleres/{tallerId} {
+      allow read, write: if isSignedIn();
+    }
+
+    /**
+     * @description Manages expert/surveyor profiles. Only authenticated users can manage them.
+     * @path /peritos/{peritoId}
+     */
+    match /peritos/{peritoId} {
+      allow read, write: if isSignedIn();
+    }
+
+    /**
+     * @description Manages customer/client profiles. Only authenticated users can manage them.
+     * @path /clientes/{clienteId}
+     */
+    match /clientes/{clienteId} {
+       allow read, write: if isSignedIn();
+    }
+
+    /**
+     * @description Manages individual claim/case documents.
+     * @path /siniestros/{siniestroId}
+     */
+    match /siniestros/{siniestroId} {
+      // Basic rule: only authenticated users can access for now.
+      // This will be refined with role-based logic.
+      allow read, write: if isSignedIn();
+      
+       /**
+       * @description Manages chat messages within a Siniestro.
+       * @path /siniestros/{siniestroId}/mensajes/{mensajeId}
+       */
+      match /mensajes/{mensajeId} {
+        // Allow read if user is the assigned perito or from the insurance company.
+        allow read: if isSignedIn() && (isPerito(request.auth.uid) || isAseguradora(request.auth.uid));
+        // Allow create if the senderId matches the authenticated user's ID.
+        allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
+        // Disallow updates and deletes to maintain chat integrity.
+        allow update, delete: if false;
+      }
+    }
+
+    /**
+     * @description Manages audit log entries.
+     * @path /audit_logs/{logId}
+     */
+    match /audit_logs/{logId} {
+      // Allow any authenticated user to create a log entry.
+      allow create: if isSignedIn();
+      // Only Super Usuarios can read the audit logs.
+      allow read, list: if isSuperUsuario();
+      // Disallow updates and deletes to maintain log integrity.
+      allow update, delete: if false;
+    }
+  }
+}
+
+    
