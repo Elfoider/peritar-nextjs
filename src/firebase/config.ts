@@ -1,8 +1,10 @@
 export const firebaseConfig = {
-  "projectId": "studio-2679070229-cd5e3",
-  "appId": "1:653726368861:web:9e7a76aceec4341b9cb9b4",
-  "apiKey": "AIzaSyD3wFhgLp0zjSYKpcPYU6iAiSCaej_fvJE",
-  "authDomain": "studio-2679070229-cd5e3.firebaseapp.com",
-  "measurementId": "",
-  "messagingSenderId": "653726368861"
+  apiKey: "AIzaSyB3R3C-ZDWoPUmEOoErHeLg5d5VrHMKfPY",
+  authDomain: "peritar-d0812.firebaseapp.com",
+  databaseURL: "https://peritar-d0812-default-rtdb.firebaseio.com",
+  projectId: "peritar-d0812",
+  storageBucket: "peritar-d0812.firebasestorage.app",
+  messagingSenderId: "550267665897",
+  appId: "1:550267665897:web:e922be186c4eb5c9fedf78",
+  measurementId: "G-NQ1DL9WG2T"
 };
